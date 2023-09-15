@@ -1,0 +1,61 @@
+version: '1.0'
+name: 'app'
+services:
+  backend:
+    image: backend:latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - mynetwork
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: duynguyen
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+      - ./postgres/bk:/var/lib/postgresql/backup
+    restart: always
+    networks:
+      - mynetwork
+
+  pgadmin4:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=duynguyen@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=12345678
+    ports:
+      - "15432:80"
+    networks:
+      - mynetwork
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 50
+      start_period: 30s
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+
+volumes:
+  postgres-db-volume:
+  redis_data:
